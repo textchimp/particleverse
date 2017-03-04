@@ -16,10 +16,16 @@ app.randyRange = function (min, max) {
 };
 
 app.controller = {
+  particleImages: [
+    new THREE.TextureLoader().load( "img/head.png" ),
+    new THREE.TextureLoader().load( "img/snowflake.png" ),
+    new THREE.TextureLoader().load( "img/el.png" ),
+  ],
+  particleMap: 0,
   rotationSpeed: 0.02,
   bouncingSpeed: 0.02,
   particleSize: 10,
-  particleAlpha: 0.5,
+  particleBright: 1.0,
   particleColour: [255, 255, 255],
   particleCount: app.numParticles,
   particleReset: function(){
@@ -97,13 +103,33 @@ app.init = function () {
   app.scene.add( app.particleSystem );
 
 
+
+// New version of texture loading
+// app.spriteMap = new THREE.TextureLoader().load( "img/el.png" );
+// var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
+//
+// app.sprite = new THREE.Sprite( spriteMaterial );
+// app.scene.add( app.sprite );
+
+
+
+
+
   app.gui = new dat.GUI();
   app.gui.add(app.controller, 'rotationSpeed', 0, 0.2);
   app.gui.add(app.controller, 'bouncingSpeed', 0, 0.2);
-  app.gui.add(app.controller, 'particleSize', 1, 40);
-  app.gui.addColor(app.controller, 'particleColour');
+  app.gui.add(app.controller, 'particleSize', 1, 200);
+  // app.gui.addColor(app.controller, 'particleColour');
+  app.gui.add(app.controller, 'particleBright', 0, 1.0);
   app.gui.add(app.controller, 'particleCount', 10, 200000);
   app.gui.add(app.controller, 'particleReset');
+
+  // app.gui.add(app.controller, 'particleMap', 0, app.controller.particleImages.length-1)
+   app.gui.add(app.controller, 'particleMap', {head: 0, star: 1, ele: 2 })
+  .onFinishChange(function(value) {
+    console.log(value, app.controller.particleImages[ value ]);
+    app.particleSystem.material.map = app.controller.particleImages[ value ];
+  });
 
   app.gui.particlePlacementFolder = app.gui.addFolder('Particle Placement');
   app.gui.particlePlacementFolder.add(app.controller.particlePos, 'xMin', -1000, 0);
@@ -113,7 +139,7 @@ app.init = function () {
   app.gui.particlePlacementFolder.add(app.controller.particlePos, 'zMin', -1000, 0);
   app.gui.particlePlacementFolder.add(app.controller.particlePos, 'zMax', -1000, 0);
 
-  app.stats = app.addStats();
+  // app.stats = app.addStats();
 
   app.controls = new THREE.OrbitControls( app.camera, app.renderer.domElement );
 
@@ -230,19 +256,23 @@ app.animate = function () {
   // app.sphere.position.x = 20 + (10 * Math.cos(app.step) );
   // app.sphere.position.y =  4 + (10 * Math.abs(Math.sin(app.step)));
 
-  app.stats.update();
+  // app.stats.update();
 
   app.renderer.render( app.scene, app.camera );
   requestAnimationFrame( app.animate );
 };
 
 app.animateParticles = function () {
+/********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
 
   var vertices = app.particleSystem.geometry.vertices;
 
-  app.particleSystem.material.size = Math.abs(Math.sin(app.step) * 50), //app.controller.particleSize;
-  // app.particleSystem.material.color.setRGB ( app.controller.particleColour[0], app.controller.particleColour[1], app.controller.particleColour[2]  );
-  app.particleSystem.material.alphaTest = app.controller.particleAlpha;
+  // app.particleSystem.material.alphaTest = app.con  troller.particleAlpha;
+
+  app.particleSystem.material.size = Math.abs( Math.sin(app.step) * app.controller.particleSize ), //app.controller.particleSize;
+  app.particleSystem.material.color.setRGB( app.controller.particleBright, app.controller.particleBright, app.controller.particleBright );
+
+  // app.particleSystem.material.alphaTest = app.controller.particleAlpha;
 
   for (var i = 0; i < vertices.length; i++) {
     var vert = vertices[i];
@@ -328,10 +358,11 @@ app.createParticleSystem = function () {
   var particleMaterial = new THREE.PointsMaterial({
     color: 0xFFFFFF, //0xFF0000, //
     size: 10,
-    map: THREE.ImageUtils.loadTexture("img/head.png"),
-    blending: THREE.NormalBlending,  //THREE.AdditiveBlending,
+    map: new THREE.TextureLoader().load( "img/head.png" ),
+    //THREE.ImageUtils.loadTexture("img/head.png"),
+    blending:  THREE.AdditiveBlending, // THREE.NormalBlending,
     transparent: true,
-    alphaTest: 0.1 //0.5
+    alphaTest: 0.5
   });
 
   var particleSystem = new THREE.Points( particles, particleMaterial );
