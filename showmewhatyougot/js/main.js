@@ -170,7 +170,7 @@ app.createSphere = function () {
     color: 0xFFFFFF,
     side: THREE.DoubleSide,
     // wireframe: true
-    map: THREE.ImageUtils.loadTexture("../img/earth.jpg")
+    map: THREE.ImageUtils.loadTexture("img/earth.jpg")
 
   });
 
@@ -328,7 +328,7 @@ app.createParticleSystem = function () {
   var particleMaterial = new THREE.PointsMaterial({
     color: 0xFFFFFF, //0xFF0000, //
     size: 10,
-    map: THREE.ImageUtils.loadTexture("../img/head.png"),
+    map: THREE.ImageUtils.loadTexture("img/head.png"),
     blending: THREE.NormalBlending,  //THREE.AdditiveBlending,
     transparent: true,
     alphaTest: 0.1 //0.5
