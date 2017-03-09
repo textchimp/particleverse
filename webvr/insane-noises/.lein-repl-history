@@ -1,0 +1,128 @@
+ user=> (use 'overtone.live)
+(use 'overtone.live)
+(demo (sin-osc))
+(demo 7 (lpf (mix (saw [50 (line 100 1600 5) 101 100.5]))
+                  (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
+(demo 7 (lpf (mix (saw [50 (line 100 700 5) 101 100.5]))
+                  (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
+(demo 7 (lpf (mix (saw [50 (line 100 700 5) 101 100.5]))
+                  (lin-lin (lf-tri (line 2 20 5)) -1 1 400 4000)))
+(use 'overtone.live)
+(demo (sin-osc))
+(source map)
+(def make-a-list (fn list %1 %2))
+(cons 1 2)
+(cons 1 [2])
+(cons 1 (2 3))
+(cons 1 '(2 3))
+(1 2 3)
+(defn my-re-seq [re string]
+         "Something like re-seq"
+         (let [matcher (re-matcher re string)]
+           (loop [match (re-find matcher) ;loop starts with 2 set arguments
+                  result []]
+             (if-not match
+               result
+               (recur (re-find matcher)    ;loop with 2 new arguments
+                      (conj result match))))))
+(my-re-seq #"\d" "0123456789")
+(my-re-seq \d "0123456789")
+(my-re-seq "\d" "0123456789")
+(my-re-seq #"\d" "0123456789")
+(my-re-seq #"\d" "012345s6789")
+(time (my-re-seq #"\d" "012345s6789"))
+`
+`map
+`test
+`sdlfsd
+`(+ 10 (+ 2 3))
+`(+ 10 ~(+ 2 3))
+(let [x '(2 3)] `(1 ~x))
+java.util.Locale
+java.util.Locale/AU
+java.util.Locale/AUSTRALIA
+java.util.Locale/JAPAN
+(.x (java.awt.Point 10 201))
+ (java.awt.Point 10 201)
+ (java.awt.Point. 10 201)
+(.x (java.awt.Point. 10 201))
+(.divide (java.math.BigDecimal. "42") 2M)
+(.divide (java.math.BigDecimal. "2") 2M)
+(ns joy.test)
+(if true
+:truth-eval
+:false-eval)
+(when true
+    :first
+    :second
+    :third
+    :etc)
+(help do)
+(doc do)
+doc do
+(find-doc do)
+(find-doc doseq)
+(demo (sin-osc))
+doc
+(doc do)
+(doc doseq)
+(doc dotimes)
+(dotimes [a 1] [a])
+(dotimes [a 1] (prn a))
+(dotimes [a 10] (prn a))
+(dotimes [a 10]
+  (prn a)
+  (prn (* a a)))
+(doseq [a 10] (prn a))
+(doseq [a (range 3)] (prn a))
+(doseq [a (range 99)] (prn a))
+(doseq [a (range 999999999999999)] (prn a))
+(doseq [a (range 99999)] (prn a))
+(dotimes [a 10]
+(dotimes [n 3] (prn a))
+(dotimes [n 3] (prn an)
+(dotimes [n 3] (prn n)
+)
+(dotimes [n 3] (prn n))
+(doc for)
+(doc take)
+(take 10)
+(take 10 (prn))
+(take 10 [a b c])
+(take 10 [1 2 3])
+(defn fvals [f max-x max-y]
+  (for [x (range max-x) y (range max-y)]
+  [x y (rem (bit-xor x y) 256 )]))
+(def frame (java.awt.Frame.))
+(.setVisible frame true)
+(.setSize frame (java.awt.Dimension. 500 500))
+(def gfx (.getGraphics frame))
+(fvals bit-xor 200 200)
+(defn clear [g x y] (.clearRect g 0 0 x y))
+  (defn draw-values [f xs ys]
+    (clear gfx xs ys)
+    (.setSize frame (java.awt.Dimension. xs ys))
+    (doseq [[x y xor] (fvals f xs ys)]
+      (.setColor gfx (java.awt.Color. xor xor xor))
+      (.fillRect gfx x y 1 1)))
+(draw-values bit-xor 500 500)
+(draw-values + 500 500)
+(draw-values map 500 500)
+(source fvals)
+(defn fvals [f max-x max-y]
+  (for [x (range max-x) y (range max-y)]
+  [x y (rem (f x y) 256 )]))
+fvals
+(draw-values + 500 500)
+(draw-values - 500 500)
+(draw-values - 200 200)
+(draw-values * 500 500)
+(draw-values * 1000 1000)
+(draw-values * 500 500)
+(draw-values / 500 500)
+  [x y (rem (f x +y) 256 )]))
+(defn fvals [f max-x max-y]
+  (for [x (range max-x) y (range max-y)]
+  [x y (rem (f x (+ y 1)) 256 )]))
+(draw-values / 500 500)
+(draw-values * 500 500)
