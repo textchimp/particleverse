@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>threejs toy universe</title>
+  <!-- use these if you don't have WebGL enabled on your computer, i.e. no 3D graphics card
+  <script src="js/SoftwareRenderer.js"></script>
+  <script src="js/Projector.js"></script>
+  -->
+  <script src="js/three.min.js"></script>
+    <script src="js/orbitControls.js"></script>
+  <script src="js/datGui.js"></script>
+  <script src="js/datguivr.min.js"></script>
+  <script src="js/stats.js"></script>
+
+  <script src="js/vr/VRControls.js"></script>
+  <script src="js/vr/VREffect.js"></script>
+  <script src="js/vr/DaydreamController.js"></script>
+  <script src="js/vr/WebVR.js"></script>
+  <script src="js/main.js"></script>
+  <style>
+   body{
+     margin: 0;
+     overflow: hidden;
+   }
+   #content{
+  position: absolute;
+  top: 100px;
+  left: 0;
+  right: 0;
+  font-family: Helvetica;
+  letter-spacing: 1px;
+  font-size: 11pt;
+  color: #ffffff;
+  padding: 20px;
+  background-color: rgba(200, 200, 200, 0.2);
+  width: 50%;
+  margin: 0 auto;
+}
+  </style>
+</head>
+<body>
+<div id="stats"></div>
+  <div id="output"></div>
+</body>
+</html>
