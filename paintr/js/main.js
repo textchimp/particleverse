@@ -11,6 +11,11 @@ $(document).ready(function(){
 
   var drawSrc = '';
 
+
+  var mousePressed = false;
+  // var mouseDragged = false;
+  // var mouseDragOffset = 0;
+
   var randRange = function ( min, max) {
     return Math.floor( min + (Math.random() * (max - min)) );
   };
@@ -21,7 +26,7 @@ $(document).ready(function(){
     // scaleCycle: false,
     flyAway: false,
     sineFactor: 1,
-    sineMovement: false,
+    sineMovement: true,
     sizeFactor: 1,
     drawType: 'color',
     blur: 0,
@@ -79,8 +84,14 @@ $(document).ready(function(){
   });
 
 
-
-  $(document).on('mousemove', function( ev ){
+  $(document)
+  .on('mousedown', function(e) {
+    mousePressed = true;  // track whether we're dragging with the mouse
+  })
+  .on('mouseup', function() {
+    mousePressed = false; // reset drag
+  })
+  .on('mousemove', function( ev ){
 
     // store the mouse X and Y position as it was when we clicked
     var x = ev.pageX;
@@ -105,8 +116,8 @@ $(document).ready(function(){
     lastDisplacement = totalDisplacement;    // save into last for next round
     // console.log('totalVelocity:', totalVelocity );
 
-    if( !ev.shiftKey ){  // if( ev.shiftKey === false )
-      // don't do any drawing if the shift key is NOT held
+    if( !ev.shiftKey && !mousePressed ){  //  ev.shiftKey === false  or mousePressed === false
+      // don't do any drawing if the shift key is NOT held, and we're not dragging
       return;
     }
 
@@ -385,12 +396,13 @@ $(document).ready(function(){
     }
   });
 
+  $('#instructions').fadeOut(6000);
 
 }); // end of .ready()
 
 // https://stackoverflow.com/questions/4127118/can-you-detect-dragging-in-jquery
 // $(function() {
-//   var pressed, pressX, pressY,
+//   var pressed, mousePressX, pressY,
 //       dragged,
 //       offset = 3; // helps detect when the user really meant to drag
 //

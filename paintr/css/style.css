@@ -6,8 +6,27 @@ body {
   /*filter: blur(10px);*/
 }
 
-.dg {
+.dg, .dg input {
   z-index: 1 !important;
+  user-select: none;  /* prevent mouse dragging from highlighting text */
+}
+
+.container{
+  width: 100%;
+}
+
+#instructions{
+  font-family: Arial, sans-serif;
+  font-size: 14pt;
+  color: #666;
+  padding-top: 14px;
+  margin: 0 auto;
+  width: 40%
+}
+
+#instructions > span{
+  color: #999;
+  font-size: 16pt;
 }
 
 .blob {
