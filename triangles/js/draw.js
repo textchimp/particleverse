@@ -6,6 +6,8 @@ var tSize = 100;
 var mx = 10;
 var my = 0.01;
 
+var up = 10;
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();  // no outline
@@ -13,6 +15,7 @@ function setup() {
   colorMode(HSB, 255);
   strokeWeight(2);
   textSize(24);
+
 
   for (var i = 0; i < tCount; i++) {
     var ii = i*10;
@@ -61,10 +64,14 @@ function setup() {
       }
     });
   } // for
+
+
 }
 
 
 function draw() {
+
+  angleMode(DEGREES);
 
   background(0); // clear screen, i.e. fill background
 
@@ -72,14 +79,59 @@ function draw() {
   mx = 50; //map(mouseX, 0, windowWidth, 0, 400);
   my = 0.1; //map(mouseY, 0, windowHeight, 0, 2);
 
-  fill(200); noStroke();
+  // mx = up;
+
+  fill(200);
+  noStroke();
+
+
+// push();
+// scale(up/10);
+// translate(width/2, height/2);
+// pop();
+
+  // translate(width-mouseX*(up/10), height-mouseY*(up/10));
+
   // text("framerate: " + parseInt(frameRate()), 10, 20);
 
   noFill();
+
+  // stroke(100, 255, 255);
+  // line(0, height/2, width, height/2);
+  // line(width/2, 0, width/2, height);
+
+  var m = map(mouseX, 0, width, 0, 80);
+  var my = map(mouseY, 0, height, 0, 5);
+
   for (var i = 0; i < triangles.length; i++) {
+
     var t = triangles[i];
-    stroke(i*2.5, 200, 200);
-    triangle(t.a.x.val, t.a.y.val, t.b.x.val, t.b.y.val, t.c.x.val, t.c.y.val);
+
+    stroke(i*2.5, 200, 200)
+
+
+    push();
+
+      translate(20+i*m, height/2);
+
+      push();
+      translate(0, 0);
+      rotate( frameCount*2 + i*my + sin(frameCount/100.0)  );
+      var b = 3;
+      // how to center exactly
+      // triangle(b*0, b*(100-35), b*50, b*(0-35), b*-50, b*(0-35) );
+      line(0, b*100, 0, b*-100);
+      pop();
+
+
+    pop();
+
+
+
+
+    // triangle(t.a.x.val, t.a.y.val, t.b.x.val, t.b.y.val, t.c.x.val, t.c.y.val);
+    //  triangle(i-200, mouseY, i, 20, i+100, 300);
+
 
     var prev = i > 0 ? i-1 : 0;
 
@@ -105,4 +157,17 @@ function draw() {
     t.c.y.tick += t.c.y.step;
 
   }
+
 }
+
+$(document).ready(function () {
+  $(document).bind('mousewheel', function(e) {
+    e.preventDefault();
+    if(e.originalEvent.wheelDelta / 120 > 0) {
+      up++;
+    } else {
+      up--;
+    }
+    console.log(up);
+  });
+});
