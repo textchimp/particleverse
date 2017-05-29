@@ -3,9 +3,60 @@ body {
   margin: 0;
   padding: 0;
   background-color: black;
+  /*filter: blur(10px);*/
+}
+
+.dg {
+  z-index: 1 !important;
 }
 
 .blob {
   position: absolute;
   border-radius: 50%;
+  background-size: cover;
+
+  /* uncomment the followling line to get CSS animations based on the keyframe definition below */
+  /*animation: fader 2s infinite ease-in-out;*/
+
+  /*filter: hue-rotate(10deg);*/
+
+  /*mix-blend-mode: soft-light;*/
+  /* try these values to get some nice blending effects!!
+  difference
+  overlay
+  soft-light
+  multiply  (gets blacker)
+  divide
+  screen (whiter)
+  (https://developer.mozilla.org/en-US/docs/Web/CSS/mix-blend-mode)
+  */
+}
+
+/* https://stackoverflow.com/questions/23985018/simple-css-animation-loop-fading-in-out-loading-text */
+@keyframes fader {
+
+  0% {
+    filter: blur(0px);
+    /*opacity: 1;*/
+    /*transform:scale(0);*/
+    /*transform:scaleX(0);*/
+    /*filter: hue-rotate(0deg);*/  /* saturate(500%) */
+    /*left:0px;*/
+  }
+  50% {
+    filter: blur(50px);
+    /*opacity: 0;*/
+    /*transform:scale(1);*/
+    /*transform:scaleX(2);*/
+    /*filter: hue-rotate(180deg);*/
+    /*left:100px;*/
+  }
+  100% {
+    filter: blur(0px);
+    /*opacity: 1;*/
+    /*transform:scale(0);*/
+    /*transform:scaleX(0);*/
+    /*filter: hue-rotate(360deg);*/
+    /*left:0px; */
+  }
 }
