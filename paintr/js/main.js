@@ -7,7 +7,6 @@ $(document).ready(function(){
   var ticks = 0;
   var sineTicks = 0;
 
-  var $body = $('body');
   var $blobSpace = $('.blobSpace');
 
   var drawSrc = '';
@@ -218,7 +217,7 @@ $(document).ready(function(){
       yInc:   randRange(-100, 100),
     });
 
-    $blobSpace.append( $blob );  // attach div element to DOM, as child of <body>
+    $blobSpace.append( $blob );  // attach div element to DOM, as child of $blobSpace
 
 
     // animate using jQuery instead of doing it ourselves in window.setInterval()
