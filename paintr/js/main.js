@@ -8,6 +8,7 @@ $(document).ready(function(){
   var sineTicks = 0;
 
   var $body = $('body');
+  var $blobSpace = $('.blobSpace');
 
   var drawSrc = '';
 
@@ -47,7 +48,7 @@ $(document).ready(function(){
     flameGIF: 'https://fat.gfycat.com/UncomfortableCourteousInchworm.gif',
     wolfGIF: 'http://bestanimations.com/Animals/Mammals/Dogs/Wolves/wolf-running-animated-gif.gif',
     dogGIF: 'http://files.gamebanana.com/img/ico/sprays/5905d4fe8d7f1.gif'
-  })
+  });
   // .onChange(function(value) {
   //   drawSrc =
   // });
@@ -56,9 +57,9 @@ $(document).ready(function(){
     if( value > 0) {
       value = 'blur(' + value + 'px)';
     } else {
-      value = ''
+      value = '';
     }
-    $body.css('filter', value);
+    $blobSpace.css('filter', value);
   });
 
   gui.add( controls, 'blendMode', [
@@ -217,7 +218,7 @@ $(document).ready(function(){
       yInc:   randRange(-100, 100),
     });
 
-    $body.append( $blob );  // attach div element to DOM, as child of <body>
+    $blobSpace.append( $blob );  // attach div element to DOM, as child of <body>
 
 
     // animate using jQuery instead of doing it ourselves in window.setInterval()
@@ -335,7 +336,7 @@ $(document).ready(function(){
       // otherwise they all rotate the same hue at the same time
       if( controls.hueCycle ){
         var hueVal = (sineTicks*0.7 + i) % 360;  // + (1 + Math.sin( sineTicks/200.0 ))/2.0 * 360 + i;
-        newHue = 'hsl(' + hueVal + ', 50%, 50%)'
+        newHue = 'hsl(' + hueVal + ', 50%, 50%)';
       }
 
       if( controls.opacityCycle ){
