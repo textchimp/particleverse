@@ -1,46 +1,80 @@
+
+var lastX;
+var lastY;
+var lastDisplacement;
+
+var ticks = 0;
+var sineTicks = 0;
+
+var drawSrc = '';
+
+var tones = [];
+
+var lastBlobAddTime = 0;
+
+var mousePressed = false;
+
+var minPitch = 100;
+var maxPitch = 12000;
+
+var scrollNorm = 0;
+
+var randRange = function ( min, max) {
+  return Math.floor( min + (Math.random() * (max - min)) );
+};
+
+var choose = function( arr ){
+  return arr[ randRange(0, arr.length) ];
+}
+
+var stopAllTones = function( tones ){
+  tones.forEach(function( t ){
+    t.triggerRelease();
+  });
+  tones.length = 0; // need to do this instead of 'tones = [];' because tones is a reference to an array
+};
+
 $(document).ready(function(){
 
-  var lastX;
-  var lastY;
-  var lastDisplacement;
-
-  var ticks = 0;
-  var sineTicks = 0;
-
   var $blobSpace = $('.blobSpace');
-
-  var drawSrc = '';
-
-
-  var mousePressed = false;
-  // var mouseDragged = false;
-  // var mouseDragOffset = 0;
-
-  var randRange = function ( min, max) {
-    return Math.floor( min + (Math.random() * (max - min)) );
-  };
 
   var controls = {
     hueCycle: false,
     opacityCycle: false,
     // scaleCycle: false,
     flyAway: false,
-    sineFactor: 1,
+    sineRangeScale: 1,
+    sineSpeedScale: 0.05,
     sineMovement: true,
-    sizeFactor: 1,
+    sizeScale: 1,
+    makeSounds: true,
+    toneRange: 1,
+    toneVolScale: 1,
     drawType: 'color',
     blur: 0,
-    blendMode: 'normal'
+    blendMode: 'normal',
+    imgURL: '',
+    debug: '',
+    blobFreq: '',
+    blobVol: '',
   };
 
   var gui = new dat.GUI();
-  gui.add( controls, 'sizeFactor', 0.5, 5);
+  gui.add( controls, 'sizeScale', 0.5, 5);
   gui.add( controls, 'hueCycle').listen();
   gui.add( controls, 'opacityCycle').listen();
   // gui.add( controls, 'scaleCycle').listen();
   gui.add( controls, 'flyAway').listen();
-  gui.add( controls, 'sineFactor', 0.1, 4);
+  gui.add( controls, 'makeSounds').listen().onChange(function(value) {
+    if(!value){
+      stopAllTones( tones );
+    }
+  });
+  gui.add( controls, 'toneRange', 0.5, 10);
+  gui.add( controls, 'toneVolScale', 0.01, 4);
   gui.add( controls, 'sineMovement').listen();
+  gui.add( controls, 'sineRangeScale', 0.1, 4);
+  gui.add( controls, 'sineSpeedScale', 0.001, 0.2).listen();
   gui.add( controls, 'drawType', {
     color: 'color',
     fireworksGIF: 'https://media.giphy.com/media/dMp9eZaAlYvvi/giphy.gif',
@@ -51,6 +85,8 @@ $(document).ready(function(){
   // .onChange(function(value) {
   //   drawSrc =
   // });
+
+  gui.add( controls, 'imgURL' );
 
   gui.add( controls, 'blur', 0, 20).onChange(function(value) {
     if( value > 0) {
@@ -83,8 +119,29 @@ $(document).ready(function(){
     $('.blob').css('mix-blend-mode', value);
   });
 
+  gui.add(controls, 'debug').listen();
+  gui.add(controls, 'blobFreq').listen();
+  gui.add(controls, 'blobVol').listen();
+
 
   $(document)
+  .on('mousewheel', function(e){
+    var inc;
+    if(e.originalEvent.deltaY > 0){
+      inc = -0.02;
+    } else {
+      inc = 0.02;
+    }
+
+    scrollNorm += inc;
+    if(scrollNorm > 1.0) {
+      scrollNorm = 1.0;
+    } else if(scrollNorm < 0){
+      scrollNorm = 0;
+    }
+
+    controls.sineSpeedScale = 0.001 + (scrollNorm * (0.2 - 0.001));
+  })
   .on('mousedown', function(e) {
     mousePressed = true;  // track whether we're dragging with the mouse
   })
@@ -92,6 +149,8 @@ $(document).ready(function(){
     mousePressed = false; // reset drag
   })
   .on('mousemove', function( ev ){
+
+    // console.log('blob');
 
     // store the mouse X and Y position as it was when we clicked
     var x = ev.pageX;
@@ -116,10 +175,19 @@ $(document).ready(function(){
     lastDisplacement = totalDisplacement;    // save into last for next round
     // console.log('totalVelocity:', totalVelocity );
 
-    if( !ev.shiftKey && !mousePressed ){  //  ev.shiftKey === false  or mousePressed === false
+    if( (!ev.shiftKey && !mousePressed) //  ev.shiftKey === false AND mousePressed === false
+        || ev.target !== $blobSpace[0]  //  mousemove event was not directly on main div (i.e on control panel instead)
+      ){
       // don't do any drawing if the shift key is NOT held, and we're not dragging
+      // ... or if the user was interacting with the dat.gui control panel
       return;
     }
+
+      if( controls.makeSounds
+      && ((Date.now() - lastBlobAddTime) < 100
+          || $('.blob').length > 50) ){
+        return;
+      }
 
     // var r = randRange( 0, 256 );
     // var g = randRange( 0, 256 );
@@ -139,7 +207,10 @@ $(document).ready(function(){
 
 
     // use the overall mouse velocity to set the size of our blob
-    var size = ( (totalVelocity * 2) * controls.sizeFactor ) % 400;
+    var size = ( (totalVelocity * 2) * controls.sizeScale );
+    if( controls.drawType === 'color' ){
+      size %= 400;
+    }
 
     // create a new div, set some CSS properties and append it to the page
     var $blob = $('<div class="blob">').css({
@@ -168,13 +239,16 @@ $(document).ready(function(){
 
     //  handle GIFs
     if( controls.drawType !== 'color' ){
+
+
+
       $blob.css({
         backgroundColor: '',
         borderRadius: '0px',
         // mixBlendMode: 'screen',
         // width: '',
         // height: '',
-        backgroundImage:  'url(' + controls.drawType + ')'
+        backgroundImage:  'url(' + (controls.imgURL || controls.drawType) + ')' // use text input if given
       });
 
       if( controls.drawType === 'http://bestanimations.com/Animals/Mammals/Dogs/Wolves/wolf-running-animated-gif.gif'){
@@ -220,6 +294,48 @@ $(document).ready(function(){
     $blobSpace.append( $blob );  // attach div element to DOM, as child of $blobSpace
 
 
+    // produce tones!
+    if( controls.makeSounds ){
+
+      //create a synth and connect it to the master output (your speakers)
+      var synth = new Tone.Synth() //.toMaster();
+      var panner = new Tone.Panner().toMaster();
+      synth.connect(panner);
+
+      var panVal =  -1.0 + ((x/window.innerWidth) * 2.0);  // set pan val [-1..1] from
+      panner.pan.value = panVal;
+
+
+      // var reverb = new Tone.JCReverb(0.7).toMaster();
+      // var feedbackDelay = new Tone.FeedbackDelay("8n", 0.5).connect(reverb);
+      // synth.connect(feedbackDelay);
+
+      // var distortion = new Tone.Distortion(0.7).toMaster();
+      //connect a synth to the distortion
+      // synth.connect(feedbackDelay);
+
+      var index = tones.push( synth );   // add to array of tone producers
+      $blob.attr('toneIndex', index-1);
+
+      //play a middle 'C' for the duration of an 8th note
+      // synth.triggerAttackRelease("C4", "8n");
+
+      // Scales!
+      // var balinese = Tonal.scale.notes('C balinese'); => ["C", "Db", "Eb", "F", "G", "Ab", "B"]
+
+      // var notes = Tonal.range.pitchSet(balinese, ['C1', 'C3']);
+      // =>  ["C1", "Db1", "Eb1", "F1", "G1", "Ab1", "B1", "C2", "Db2", "Eb2", "F2", "G2", "Ab2", "B2", "C3"]
+
+      // var notes = Tonal.range.pitchSet(balinese, [32, 60])
+      // =>
+
+      synth.triggerAttack(y);
+      // synth.triggerRelease();
+
+    } // controls.makeSounds
+
+    lastBlobAddTime = Date.now();
+
     // animate using jQuery instead of doing it ourselves in window.setInterval()
     //
     // $blob.animate({
@@ -258,7 +374,6 @@ $(document).ready(function(){
   var trigDisplace = function(trigFunc, ticks, range){
     return trigFunc(ticks) * range;
   };
-
 
   window.setInterval(function(){
 
@@ -305,7 +420,8 @@ $(document).ready(function(){
       // apply the increment to each and save it back to the attribute
       // (these values get passed into the sin()/cos() functions to control the speed of oscillation)
       var xTicks =  +$(this).attr('xTicks');
-      $(this).attr('xTicks', xTicks + xInc/50.0);
+      xTicks += xInc * controls.sineSpeedScale;
+      $(this).attr('xTicks', xTicks);
 
       var yTicks =  +$(this).attr('yTicks');
       $(this).attr('yTicks', yTicks + yInc/50.0);
@@ -316,14 +432,14 @@ $(document).ready(function(){
         newY = origY + trigDisplace(
           Math.sin,
           xTicks / 30.0,
-          yRange * 1.5  * controls.sineFactor
+          yRange * 1.5  * controls.sineRangeScale
         );
         // same as: var newY = origY + ( Math.sin( xTicks/30.0 ) * yRange * 1.5 );
 
         newX = origX + trigDisplace(
           Math.cos,
           xTicks / 30.0,
-          xRange * 1.5  * controls.sineFactor
+          xRange * 1.5  * controls.sineRangeScale
         );
         // same as: var newX = origX + ( Math.cos( yTicks/30.0 ) * yRange * 1.5 );
 
@@ -343,6 +459,36 @@ $(document).ready(function(){
         // (tick is unique for each div)
         newOpacity = (1 + Math.sin( tick/120.0 )) / 2.0;
       }
+
+
+      if( controls.makeSounds ){
+        var toneRange = 20 * controls.toneVolScale;
+        var tone = tones[ +$(this).attr('toneIndex') ];
+        // console.log('tone'tone);
+        if( tone ){
+          // console.log(tone);
+
+          var volSin = (1 + Math.cos(xTicks / 30.0)) / 2.0; // same point in cos() cycle as for X position
+          controls.debug = volSin.toFixed(2);
+          var vol = -toneRange + (volSin * toneRange);  // calculate a number between -10 and 0 for vol (decibels)
+
+          tone.volume.value = vol;
+
+          var freqSin =  (1 + Math.sin(xTicks / 30.0)) / 2.0; // same point in cos() cycle as for X position
+          // var freq = 0 + ( freqSin * (maxPitch-minPitch)/2  );  //
+          var freq = (window.innerHeight - origY) - ( freqSin * controls.toneRange * controls.sineRangeScale );  //
+          // debugger;
+
+          if( i == 0 ){
+            // output debugging values to dat.gui text fields for blob[0]
+            controls.blobFreq = freq.toFixed(2);
+            controls.blobVol = vol.toFixed(2);
+          }
+
+          // tone.frequency.value += freqSin * 100; // awesome when init
+          tone.frequency.value = freq;
+        }
+      } // controls.makeSounds
 
       // if( controls.scaleCycle ){
       //   var scale = (1 + Math.sin( (tick+i)/150.0 )) * 2.0; //   / 2.0;
@@ -380,7 +526,12 @@ $(document).ready(function(){
   $(document).on('keypress', function (ev) {
 
     if( ev.key === " " ){
+
       $('.blob').remove();
+
+      if( controls.makeSounds ){
+        stopAllTones( tones );
+      }
 
     } else if( ev.key === 'c' ){
       controls.hueCycle = !controls.hueCycle;
@@ -393,7 +544,20 @@ $(document).ready(function(){
 
     } else if( ev.key === 'f' ){
       controls.flyAway = !controls.flyAway;
+
+    } else if( ev.key === 'b' ){
+      // controls.flyAway = !controls.flyAway;
+      var e = new jQuery.Event("mousemove");
+      e.pageX = 600;
+      e.pageY = 300;
+      e.shiftKey = true;
+      lastX = 580;
+      lastY = 280;
+      $blobSpace.trigger(e);
+      console.log(e);
+
     }
+
   });
 
   $('#instructions').fadeOut(6000);
