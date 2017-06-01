@@ -19,6 +19,9 @@ var maxPitch = 12000;
 
 var scrollNorm = 0;
 
+var debugFolder;  // declare here so we can open/close with keyboard
+var debugFolderVisible = false;
+
 var randRange = function ( min, max) {
   return Math.floor( min + (Math.random() * (max - min)) );
 };
@@ -43,13 +46,14 @@ $(document).ready(function(){
     opacityCycle: false,
     // scaleCycle: false,
     flyAway: false,
-    sineRangeScale: 1,
-    sineSpeedScale: 0.05,
+    sineRange: 1,
+    sineSpeed: 0.05,
     sineMovement: true,
     sizeScale: 1,
     makeSounds: true,
+    effectsPedal: false,
     toneRange: 1,
-    toneVolScale: 1,
+    toneVol: 1,
     drawType: 'color',
     blur: 0,
     blendMode: 'normal',
@@ -70,11 +74,14 @@ $(document).ready(function(){
       stopAllTones( tones );
     }
   });
+
+  gui.add( controls, 'effectsPedal');
+
   gui.add( controls, 'toneRange', 0.5, 10);
-  gui.add( controls, 'toneVolScale', 0.01, 4);
+  gui.add( controls, 'toneVol', 0.01, 4);
   gui.add( controls, 'sineMovement').listen();
-  gui.add( controls, 'sineRangeScale', 0.1, 4);
-  gui.add( controls, 'sineSpeedScale', 0.001, 0.2).listen();
+  gui.add( controls, 'sineRange', 0.1, 4);
+  gui.add( controls, 'sineSpeed', 0.001, 0.2).listen();
   gui.add( controls, 'drawType', {
     color: 'color',
     fireworksGIF: 'https://media.giphy.com/media/dMp9eZaAlYvvi/giphy.gif',
@@ -119,9 +126,13 @@ $(document).ready(function(){
     $('.blob').css('mix-blend-mode', value);
   });
 
-  gui.add(controls, 'debug').listen();
-  gui.add(controls, 'blobFreq').listen();
-  gui.add(controls, 'blobVol').listen();
+  debugFolder = gui.addFolder('Debug');
+
+  debugFolder.add(controls, 'debug').listen();
+  debugFolder.add(controls, 'blobFreq').listen();
+  debugFolder.add(controls, 'blobVol').listen();
+
+  debugFolder.close();
 
 
   $(document)
@@ -140,7 +151,7 @@ $(document).ready(function(){
       scrollNorm = 0;
     }
 
-    controls.sineSpeedScale = 0.001 + (scrollNorm * (0.2 - 0.001));
+    controls.sineSpeed = 0.001 + (scrollNorm * (0.2 - 0.001));
   })
   .on('mousedown', function(e) {
     mousePressed = true;  // track whether we're dragging with the mouse
@@ -300,19 +311,23 @@ $(document).ready(function(){
       //create a synth and connect it to the master output (your speakers)
       var synth = new Tone.Synth() //.toMaster();
       var panner = new Tone.Panner().toMaster();
-      synth.connect(panner);
 
-      var panVal =  -1.0 + ((x/window.innerWidth) * 2.0);  // set pan val [-1..1] from
+      var panVal =  -1.0 + ((x / window.innerWidth) * 2.0);  // set pan val [-1..1] from X position
       panner.pan.value = panVal;
 
+      if( controls.effectsPedal ){
+        var reverb = new Tone.JCReverb(0.7).connect(panner);
+        var feedbackDelay = new Tone.FeedbackDelay("8n", 0.5).connect(reverb);
 
-      // var reverb = new Tone.JCReverb(0.7).toMaster();
-      // var feedbackDelay = new Tone.FeedbackDelay("8n", 0.5).connect(reverb);
-      // synth.connect(feedbackDelay);
+        synth.connect(feedbackDelay);
 
-      // var distortion = new Tone.Distortion(0.7).toMaster();
-      //connect a synth to the distortion
-      // synth.connect(feedbackDelay);
+        // var distortion = new Tone.Distortion(0.7).toMaster();
+        // connect a synth to the distortion
+        // synth.connect(feedbackDelay);
+      } else {
+        // No fx chain, just synth straight into panner -> master
+        synth.connect(panner);
+      }
 
       var index = tones.push( synth );   // add to array of tone producers
       $blob.attr('toneIndex', index-1);
@@ -420,7 +435,7 @@ $(document).ready(function(){
       // apply the increment to each and save it back to the attribute
       // (these values get passed into the sin()/cos() functions to control the speed of oscillation)
       var xTicks =  +$(this).attr('xTicks');
-      xTicks += xInc * controls.sineSpeedScale;
+      xTicks += xInc * controls.sineSpeed;
       $(this).attr('xTicks', xTicks);
 
       var yTicks =  +$(this).attr('yTicks');
@@ -432,14 +447,14 @@ $(document).ready(function(){
         newY = origY + trigDisplace(
           Math.sin,
           xTicks / 30.0,
-          yRange * 1.5  * controls.sineRangeScale
+          yRange * 1.5  * controls.sineRange
         );
         // same as: var newY = origY + ( Math.sin( xTicks/30.0 ) * yRange * 1.5 );
 
         newX = origX + trigDisplace(
           Math.cos,
           xTicks / 30.0,
-          xRange * 1.5  * controls.sineRangeScale
+          xRange * 1.5  * controls.sineRange
         );
         // same as: var newX = origX + ( Math.cos( yTicks/30.0 ) * yRange * 1.5 );
 
@@ -462,7 +477,7 @@ $(document).ready(function(){
 
 
       if( controls.makeSounds ){
-        var toneRange = 20 * controls.toneVolScale;
+        var toneRange = 20 * controls.toneVol;
         var tone = tones[ +$(this).attr('toneIndex') ];
         // console.log('tone'tone);
         if( tone ){
@@ -476,7 +491,7 @@ $(document).ready(function(){
 
           var freqSin =  (1 + Math.sin(xTicks / 30.0)) / 2.0; // same point in cos() cycle as for X position
           // var freq = 0 + ( freqSin * (maxPitch-minPitch)/2  );  //
-          var freq = (window.innerHeight - origY) - ( freqSin * controls.toneRange * controls.sineRangeScale );  //
+          var freq = (window.innerHeight - origY) - ( freqSin * controls.toneRange * controls.sineRange );  //
           // debugger;
 
           if( i == 0 ){
@@ -535,6 +550,14 @@ $(document).ready(function(){
 
     } else if( ev.key === 'c' ){
       controls.hueCycle = !controls.hueCycle;
+
+    } else if( ev.key === 'd' ){
+      debugFolderVisible = !debugFolderVisible;
+      if( debugFolderVisible ){
+        debugFolder.open();
+      } else {
+        debugFolder.close();
+      }
 
     } else if( ev.key === 'o' ){
       controls.opacityCycle = !controls.opacityCycle;
